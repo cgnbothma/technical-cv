@@ -2,19 +2,29 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const uri = ATLAS_URI="mongodb+srv://ettienesmithcv:CjH1ro9aDyco1W7r@cluster0.mhunj.gcp.mongodb.net/vehicles?authSource=admin&replicaSet=atlas-e2d7s0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true"//process.env.ATLAS_URI;
 
-const healthRoutes = require('./routes/health-route');
-const swaggerRoutes = require('./routes/swagger-route');
-
+const cors = require('cors');
+const mongoose = require('mongoose');
 const app = express();
 
-// enable parsing of http request body
+const usersRouter = require('./routes/users');
+
+mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true }
+);
+
+const connection = mongoose.connection;
+connection.once('open', () => {
+  console.log("MongoDB database connection established successfully");
+})
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cors());
+//app.use(express.json());
 
 // routes and api calls
-app.use('/health', healthRoutes);
-app.use('/swagger', swaggerRoutes);
+app.use('/users', usersRouter);
 
 // default path to serve up index.html (single page application)
 app.all('', (req, res) => {
@@ -24,8 +34,7 @@ app.all('', (req, res) => {
 // start node server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`App UI available http://localhost:${port}`);
-  console.log(`Swagger UI available http://localhost:${port}/swagger/api-docs`);
+  console.log(`Backend available http://localhost:${port}`);
 });
 
 // error handler for unmatched routes or api calls
